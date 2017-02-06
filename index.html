@@ -4,74 +4,97 @@
 <head>
 	<meta charset="utf-8">
 	<title>CSE 564 Assignment 1</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href='//fonts.googleapis.com/css?family=Fredericka the Great' rel='stylesheet'>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 	<script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
 	<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
 </head>
 
 <style>
+	.axis path,
+	.axis line {
+		fill: none;
+		stroke: black;
+		shape-rendering: crispEdges;
+	}
+	.axis text {
+		font-family: sans-serif;
+		font-size: 11px;
+	}
+	body {
+		font-family: 'Fredericka the Great';
+		font-size: 22px;
+		align: center;
+	}
+	.bar {
+		fill: orange;
+	}
+	.bar:hover {
+		fill: orangered ;
+	}
+	.d3-tip {
+		font-size: 15px;
+		line-height: 1;
+		font-weight: bold;
+		padding: 12px;
+		background: rgba(0, 0, 0, 0.8);
+		color: #fff;
+		border-radius: 2px;
+	}
 
-.axis path,
-.axis line {
-	fill: none;
-	stroke: black;
-	shape-rendering: crispEdges;
-}
-.axis text {
-	font-family: sans-serif;
-	font-size: 11px;
-}
-body {
-	font: 10px sans-serif;
-}
-.bar {
-	fill: orange;
-}
-.bar:hover {
-	fill: orangered ;
-}
-.d3-tip {
-	font-size: 15px;
-	line-height: 1;
-	font-weight: bold;
-	padding: 12px;
-	background: rgba(0, 0, 0, 0.8);
-	color: #fff;
-	border-radius: 2px;
-}
+	/* Creates a small triangle extender for the tooltip */
+	.d3-tip:after {
+		box-sizing: border-box;
+		display: inline;
+		font-size: 10px;
+		width: 100%;
+		line-height: 1;
+		color: rgba(0, 0, 0, 0.8);
+		content: "\25BC";
+		position: absolute;
+		text-align: center;
+	}
 
-/* Creates a small triangle extender for the tooltip */
-.d3-tip:after {
-	box-sizing: border-box;
-	display: inline;
-	font-size: 10px;
-	width: 100%;
-	line-height: 1;
-	color: rgba(0, 0, 0, 0.8);
-	content: "\25BC";
-	position: absolute;
-	text-align: center;
-}
+	/* Style northward tooltips differently */
+	.d3-tip.n:after {
+		margin: -1px 0 0 0;
+		top: 100%;
+		left: 0;
+	}
+	.bar rect {
+		shape-rendering: crispEdges;
+	}
+	.bar text {
+		fill: #999999;
+	}
 
-/* Style northward tooltips differently */
-.d3-tip.n:after {
-	margin: -1px 0 0 0;
-	top: 100%;
-	left: 0;
-}
-.bar rect {
-	shape-rendering: crispEdges;
-}
-.bar text {
-	fill: #999999;
-}
-
+	.col-centered{
+		float: none;
+		margin: 0 auto;
+	}
 </style>
+
 <body>
-	<select id="attributes" onchange="">
-	</select>
-	<div>
-	</div>
+
+	<section class="jumbotron text-center">
+	<div class="container">
+		<h2 class="jumbotron-heading">Air Pollution Data</h2>
+		<h3>
+		<div class="col-lg-2 col-centered">
+			<div class="form-group">
+				<select class="form-control" onchange="init_histogram(this.value)">
+				</select>
+			</div>
+		</div>
+		</h3>
+		</div>
+	</section>
+
 	<script type="text/javascript">
+
 	var dataset;
 	var col_names;
 	var data, x, histogram;
@@ -118,7 +141,7 @@ body {
 			.attr('class', 'd3-tip')
 		 	.offset([-10, 0])
 		 	.html(function(d) {
-		 	return "<strong>Frequency:</strong> <span style='color:red'>" + d.length + "</span>";
+		 	return "<strong>Frequency:</strong> <span style='color:white'>" + d.length + "</span>";
 		  })
 		svg.call(tip);
 
@@ -197,6 +220,7 @@ body {
 	});
 
 	</script>
+
 </body>
 
 </html>
