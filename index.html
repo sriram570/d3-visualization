@@ -1,5 +1,213 @@
 <!DOCTYPE html>
 <html lang="en">
-<title>CSE 564 Assignment 1</title>
+
+<head>
+	<meta charset="utf-8">
+	<title>CSE 564 Assignment 1</title>
+	<script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+	<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+</head>
+
+<style>
+body {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  /*shape-rendering: crispEdges;*/
+}
+
+.bar {
+  fill: orange;
+}
+
+.bar:hover {
+  fill: orangered ;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.d3-tip {
+  line-height: 1;
+  font-weight: bold;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 2px;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.8);
+  content: "\25BC";
+  position: absolute;
+  text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
+}
+
+	.bar rect {
+	  shape-rendering: crispEdges;
+	}
+
+	.bar text {
+	  fill: #999999;
+	}
+
+	.axis path, .axis line {
+	  fill: none;
+	  stroke: #000;
+	  shape-rendering: crispEdges;
+	}
+</style>
+<body>
+    <select id="attributes" onchange="">
+    </select>
+    <div>
+    </div>
+	<script type="text/javascript">
+		var dataset;
+		var col_names;
+		var data, x, histogram;
+		var pady = 50;
+		var padx = 60;
+		var margin = {top: 20, right: 30, bottom: 30, left: 30};
+	    var width = 960;
+	    var height = 500 - margin.top - margin.bottom;
+		var color = "steelblue";
+
+	    function draw_histogram() {
+	    	console.log(data);
+	    	console.log(col_names);
+	    	var y_max = d3.max(data.map(function(d){return d.length}));
+	    	var y_min = d3.min(data.map(function(d){return d.length}));
+	    	console.log(y_min, y_max);
+
+			var xScale = d3.scale.linear()
+	        	.domain([0,d3.max(data.map(function(d) {return d.x}))])
+	        	.range([padx/2,width-(padx/2)]);
+
+	    	var yScale = d3.scale.linear()
+	        	.domain([0,d3.max(data.map(function(d) {return d.length}))])
+	        	.range([height-pady*2,0]);
+
+			var heightScale = d3.scale.linear()
+			    .domain([0,d3.max(data.map(function(d) {return d.length}))])
+			    .range([0,height-pady*2]);
+
+			var xAxis = d3.svg.axis()
+			    .scale(xScale)
+			    .orient("bottom")
+			    .ticks(10);
+
+			var colorScale = d3.scale.linear()
+	            .domain([y_min, y_max])
+	            .range([d3.rgb(color).brighter(), d3.rgb(color).darker()]);
+
+		    var xPos = d3.scale.linear()
+		        .domain([0,d3.max(data.map(function(d) {return d.x}))])
+		        .range([padx/2,width-padx]);
+
+			var tip = d3.tip()
+				.attr('class', 'd3-tip')
+			 	.offset([-10, 0])
+			 	.html(function(d) {
+				return "<strong>Frequency:</strong> <span style='color:white'>" + d.length + "</span>";
+			  })
+			  svg.call(tip);
+
+	  		var bar = svg.selectAll("rect")
+			.data(histogram)
+			.enter()
+			.append("rect")
+			.on('mouseover', function(d) {
+				d3.select(this)
+					.attr("fill", "red")
+					.attr("height", function(d) {return heightScale(d.y) + 15})
+					.attr("width", 80)
+					.attr("transform", "translate(0,-15)");
+				tip.show(d);
+			})
+			.on('mouseout', function(d, i) {
+				d3.select(this)
+					.attr("fill", function(d, i) {return colorScale(d.x)})
+					.attr("height", function(d) {return heightScale(d.y)})
+					.attr("width", 65)
+					.attr("transform", "translate(7.5, 0)");
+				tip.hide(d);
+			})
+			.attr("class", "bar")
+	        .attr("fill", function(d,i) { return colorScale(d.x) })
+	        .attr("x", function(d) { return xPos(d.x)})
+	        .attr("height", 0)
+	        .attr("y", function(d,i) { return height-pady })
+	        .attr("width", 65)
+	        .attr("transform", "translate(5,0)")
+	        .transition()
+	        .duration(800)
+	        .delay(function (d,i) { return i*50 })
+	            .attr("y", function(d) { return yScale(d.y) +pady})
+	            .attr("height", function(d) { return heightScale(d.y) });
+			
+	    	svg.append("g")
+	        .attr("transform", "translate(10, "+ (height - pady + 10) +")")
+	        .attr("class","axis")
+	        .call(xAxis);
+
+	    }
+
+		function init_histogram(column) {
+			var index = col_names.indexOf(column);
+			console.log(index);
+			var col_data = dataset.map(function(d) {return parseInt(d[column]);});
+
+			histogram = d3.layout.histogram()
+				.bins(10)
+				(col_data);
+			console.log(col_data);
+
+			data = histogram;
+			svg.selectAll("*").remove();
+			draw_histogram();
+		}
+
+
+		var svg = d3.select("div")
+			.append("svg")
+			.attr("width", width + margin.left + margin.right)
+		    .attr("height", height + margin.top + margin.bottom)
+			.append("g")
+		    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+		d3.csv("winter.csv", function(error, data) {
+	 	dataset = data;
+	 	col_names = Object.keys(d3.values(data)[0]);
+	    console.log(col_names)
+	    d3.select("select").selectAll("option")
+	        .data(col_names)
+	        .enter()
+	        .append("option")
+	        .attr("value", function(d) {return d})
+	        .text(function(d) {return d});
+	    init_histogram(col_names[0]);
+		});
+
+	</script>
+</body>
 
 </html>
