@@ -75,21 +75,32 @@
 		float: none;
 		margin: 0 auto;
 	}
+
+	.arc text {
+		font: 10px sans-serif;
+		text-anchor: middle;
+	}
+
+	.arc path {
+		stroke: #fff;
+	}
 </style>
 
 <body>
 
 	<section class="jumbotron text-center">
-	<div class="container">
-		<h2 class="jumbotron-heading">Air Pollution Data</h2>
-		<h3>
-		<div class="col-lg-2 col-centered">
-			<div class="form-group">
-				<select class="form-control" onchange="init_histogram(this.value)">
-				</select>
+		<div class="container">
+			<h2>Air Pollution Data</h2>
+			<h3>
+			<div class="row">
+				<div class="col-lg-2 col-centered">
+					<div class="form-group">
+						<select id="my-dropdown" name="my-dropdown" class="form-control" onchange="init_histogram(this.value)">
+						</select>
+					</div>
+				</div>
 			</div>
-		</div>
-		</h3>
+			</h3>
 		</div>
 	</section>
 
@@ -97,20 +108,18 @@
 
 	var dataset;
 	var col_names;
-	var data, x, histogram;
-	var pady = 50;
+	var data, x, histogram, pie;
+	var pady = 50, tip;
 	var padx = 50;
 	var margin = {top: 20, right: 30, bottom: 30, left: 30};
 	var width = 900 - margin.left - margin.right;
 	var height = 550 - margin.top - margin.bottom;
 	var color = "steelblue";
+	var radius = Math.min(width, height) / 2;
 
 	function draw_histogram() {
-		console.log(data);
-		console.log(col_names);
 		var y_max = d3.max(data.map(function(d){return d.length}));
 		var y_min = d3.min(data.map(function(d){return d.length}));
-		console.log(y_min, y_max);
 
 		var xScale = d3.scale.linear()
 			.domain([0,d3.max(data.map(function(d) {return d.x}))])
@@ -137,7 +146,7 @@
 			.domain([0,d3.max(data.map(function(d) {return d.x}))])
 			.range([padx/2,width-padx]);
 
-		var tip = d3.tip()
+		tip = d3.tip()
 			.attr('class', 'd3-tip')
 		 	.offset([-10, 0])
 		 	.html(function(d) {
@@ -183,16 +192,16 @@
 			.attr("transform", "translate(35, "+ (height - pady + 15) +")")
 			.call(xAxis);
 
-    }
+	}
+
 
 	function init_histogram(column) {
+		svg.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 		var index = col_names.indexOf(column);
-		console.log(index);
 		var col_data = dataset.map(function(d) {return parseInt(d[column]);});
 		histogram = d3.layout.histogram()
 			.bins(10)
 			(col_data);
-		console.log(col_data);
 		data = histogram;
 		svg.selectAll("*").remove();
 		draw_histogram();
@@ -206,17 +215,124 @@
 		.append("g")
 		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+
+	function process_data(arr) {
+		var max = Math.max.apply(null, arr);
+		var min = Math.min.apply(null, arr);
+		var dict = {};
+		var start_of_range = {};
+		var end_of_range = {};
+		var method = {};
+		var range = {};
+		var n = 8;
+		var count = {};
+		var len = Object.keys(start_of_range).length;
+		var length_of_range = (max - min + 1) / n;
+
+		for (var i = 1; i <= n; i++) {
+			count[i] = 0;
+		}
+
+		for (var i = 1; i <= n; i++) {
+			start_of_range[i] = Math.ceil(length_of_range * (i-1) + min);
+			if ( i != 1 && start_of_range[i] == end_of_range[i-1])
+				start_of_range[i] += 1;
+			if ( i != 1 && start_of_range[i] == end_of_range[i-1] - 1)
+				start_of_range[i] += 2;
+			if ( i != 1 && start_of_range[i] == end_of_range[i-1] - 2)
+				start_of_range[i] += 3;
+			end_of_range[i] = Math.ceil(start_of_range[i] + length_of_range - 1); 
+		}
+
+		for (var i = 1; i < arr.length; i++) {
+			method[arr[i]] = Math.floor((arr[i] - min) / length_of_range + 1);
+			count[method[arr[i]]] += 1;
+		}
+
+		var array = [];
+		for (var i = 1; i <= n; i++) {
+			array.push({
+				key: start_of_range[i].toString() + '-' + end_of_range[i].toString(),
+				value: count[i]
+			});
+		}
+
+		return array;
+	}
+
+
+	function draw_pie(data) {
+
+		var color = d3.scale.category20c();  
+
+		var arc = d3.svg.arc()
+			.outerRadius(radius - 10)
+			.innerRadius(0);
+
+		var labelArc = d3.svg.arc()
+			.outerRadius(radius - 40)
+			.innerRadius(radius - 40);
+
+		pie = d3.layout.pie()
+			.sort(null)
+			.value(function(d) { return d.value; });
+
+		var g = svg.selectAll(".arc")
+			.data(pie(data))
+			.enter().append("g")
+			.attr("class", "arc");
+
+		g.append("path")
+			.attr("d", arc)
+			.style("fill", function(d) { return color(d.data.key); });
+
+		/*g.append("text")
+			.attr("transform", function(d) { return "translate(" + labelArc.centroid(d) + ")"; })
+			.attr("dy", ".35em")
+			.text(function(d) { return d.data.key; });*/
+
+		function type(d) {
+			d.value = +d.value;
+			return d;
+		}
+	}
+
+
+	function init_pie(column) {
+		svg.attr("transform", "translate(" + (width / 2 + margin.left) + "," + (height / 2 + margin.top) + ")");
+		var index = col_names.indexOf(column);
+		var col_data = dataset.map(function(d) {return parseInt(d[column]);});
+		var processed_data = process_data(col_data);
+		svg.selectAll("*").remove();
+		draw_pie(processed_data);
+	}
+
+
 	d3.csv("winter.csv", function(error, data) {
-	dataset = data;
-	col_names = Object.keys(d3.values(data)[0]);
-	console.log(col_names)
-	d3.select("select").selectAll("option")
-		.data(col_names)
-		.enter()
-		.append("option")
-		.attr("value", function(d) {return d})
-		.text(function(d) {return d});
+		var isPie = false;
+		dataset = data;
+		col_names = Object.keys(d3.values(data)[0]);
+		d3.select("select").selectAll("option")
+			.data(col_names)
+			.enter()
+			.append("option")
+			.attr("value", function(d) {return d})
+			.text(function(d) {return d});
+		
 		init_histogram(col_names[0]);
+
+		svg.on("click", function(d, i) {
+			var selected = $('#my-dropdown option:selected');
+			tip.hide(d);
+			if (isPie) {
+				isPie = false;
+				init_histogram(selected.html());
+			}
+			else {
+				isPie = true;
+				init_pie(selected.html())
+			}
+		});
 	});
 
 	</script>
