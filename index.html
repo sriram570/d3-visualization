@@ -30,10 +30,10 @@
 		align: center;
 	}
 	.bar {
-		fill: orange;
+		fill: #ff3333;
 	}
 	.bar:hover {
-		fill: orangered ;
+		fill: #660000;
 	}
 	.d3-tip {
 		font-size: 15px;
@@ -85,7 +85,7 @@
 
 	<section class="jumbotron text-center">
 		<div class="container">
-			<h2>Air Pollution Data</h2>
+			<h2 id="navigator">Air Pollution Data</h2>
 			<h3>
 			<div class="row">
 				<div class="col-lg-2 col-centered">
@@ -103,7 +103,7 @@
 	<script type="text/javascript">
 
 	var dataset;
-	var col_names;
+	var col_names, no_bins = 10;
 	var data, x, histogram, pie;
 	var pady = 50, tip;
 	var padx = 50;
@@ -132,12 +132,14 @@
 		var xAxis = d3.svg.axis()
 			.scale(xScale)
 			.orient("bottom")
-			.ticks(10);
+			.ticks(no_bins);
 
-		var colorScale = d3.scale.linear()
+		var colorScale = d3.scale.category20c();
+
+		/*var colorScale = d3.scale.linear()
 			.domain([y_min, y_max])
 			.range([d3.rgb(color).brighter(), d3.rgb(color).darker()]);
-
+		*/
 		var xPos = d3.scale.linear()
 			.domain([0,d3.max(data.map(function(d) {return d.x}))])
 			.range([padx/2,width-padx]);
@@ -195,7 +197,7 @@
 		var index = col_names.indexOf(column);
 		var col_data = dataset.map(function(d) {return parseInt(d[column]);});
 		histogram = d3.layout.histogram()
-			.bins(10)
+			.bins(no_bins)
 			(col_data);
 		data = histogram;
 		svg.selectAll("*").remove();
@@ -219,7 +221,7 @@
 		var end_of_range = {};
 		var method = {};
 		var range = {};
-		var n = 10;
+		var n = no_bins;
 		var count = {};
 		var len = Object.keys(start_of_range).length;
 		var length_of_range = (max - min + 1) / n;
@@ -366,7 +368,8 @@
 		console.log(direction);
 		oldx = e.pageX;
 	}
-	document.addEventListener("click", mousemovemethod, true);
+	var drag_area = document.getElementById("navigator");
+	drag_area.addEventListener("click", mousemovemethod, true);
 	
 	</script>
 
