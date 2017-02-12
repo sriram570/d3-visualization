@@ -1,0 +1,50 @@
+	.axis path,
+	.axis line {
+		fill: none;
+		stroke: black;
+		shape-rendering: crispEdges;
+	}
+	.axis text {
+		font-family: sans-serif;
+		font-size: 11px;
+	}
+	body {
+		font-family: 'Fredericka the Great';
+		font-size: 22px;
+		align: center;
+	}
+	.bar {
+		fill: #ff3333;
+	}
+	.bar:hover {
+		fill: #660000;
+	}
+	.d3-tip {
+		font-size: 15px;
+		line-height: 1;
+		font-weight: bold;
+		padding: 8px;
+		border-radius: 3px;
+	}
+	.d3-tip.n:after {
+		margin: -1px 0 0 0;
+		top: 100%;
+		left: 0;
+	}
+	.bar rect {
+		shape-rendering: crispEdges;
+	}
+	.bar text {
+		fill: #999999;
+	}
+	.col-centered{
+		float: none;
+		margin: 0 auto;
+	}
+	.arc text {
+		font: 10px sans-serif;
+		text-anchor: middle;
+	}
+	.arc path {
+		stroke: #fff;
+	}
