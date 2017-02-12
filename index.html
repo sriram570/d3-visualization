@@ -352,6 +352,22 @@
 		});
 	});
 
+	/* Adding event listener for leftward and rightward movement detection */
+	var direction = "",
+	oldx = 0,
+	
+	mousemovemethod = function (e) {
+		if (e.pageX < oldx) {
+			direction = "left"
+		} else if (e.pageX > oldx) {
+			direction = "right"
+		}
+
+		console.log(direction);
+		oldx = e.pageX;
+	}
+	document.addEventListener("click", mousemovemethod, true);
+	
 	</script>
 
 </body>
