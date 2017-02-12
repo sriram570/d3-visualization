@@ -3,7 +3,7 @@
 
 <head>
 	<meta charset="utf-8">
-	<title>CSE 564 Assignment 1</title>
+	<title>CSE 564 Lab 1</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link href='//fonts.googleapis.com/css?family=Fredericka the Great' rel='stylesheet'>
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -44,7 +44,6 @@
 		color: #fff;
 		border-radius: 2px;
 	}
-
 	/* Creates a small triangle extender for the tooltip */
 	.d3-tip:after {
 		box-sizing: border-box;
@@ -57,7 +56,6 @@
 		position: absolute;
 		text-align: center;
 	}
-
 	/* Style northward tooltips differently */
 	.d3-tip.n:after {
 		margin: -1px 0 0 0;
@@ -70,17 +68,14 @@
 	.bar text {
 		fill: #999999;
 	}
-
 	.col-centered{
 		float: none;
 		margin: 0 auto;
 	}
-
 	.arc text {
 		font: 10px sans-serif;
 		text-anchor: middle;
 	}
-
 	.arc path {
 		stroke: #fff;
 	}
@@ -102,6 +97,7 @@
 			</div>
 			</h3>
 		</div>
+
 	</section>
 
 	<script type="text/javascript">
@@ -160,7 +156,6 @@
 			.append("rect")
 			.on('mouseover', function(d) {
 				d3.select(this)
-				.attr("fill", "red")
 				.attr("height", function(d) {return heightScale(d.y) + 15})
 				.attr("width", 80)
 				.attr("transform", "translate(0,-15)");
@@ -224,7 +219,7 @@
 		var end_of_range = {};
 		var method = {};
 		var range = {};
-		var n = 8;
+		var n = 10;
 		var count = {};
 		var len = Object.keys(start_of_range).length;
 		var length_of_range = (max - min + 1) / n;
@@ -267,29 +262,51 @@
 
 		var arc = d3.svg.arc()
 			.outerRadius(radius - 10)
-			.innerRadius(0);
-
-		var labelArc = d3.svg.arc()
-			.outerRadius(radius - 40)
-			.innerRadius(radius - 40);
+			.innerRadius(25);
 
 		pie = d3.layout.pie()
 			.sort(null)
 			.value(function(d) { return d.value; });
 
-		var g = svg.selectAll(".arc")
+		tip = d3.tip()
+			.attr('class', 'd3-tip')
+		 	.offset([-10, 0])
+		 	.html(function(d) {
+		 	return "<span style='color:white'>" + d.data.key + "</span>";
+		  })
+		svg.call(tip);
+
+		var path = svg.selectAll("path")
 			.data(pie(data))
-			.enter().append("g")
-			.attr("class", "arc");
+			.enter()
+			.append("path")
+			.on("mouseover", function (d) {
+				d3.select(this)
+					.attr("width", d3.event.pageX)
+					.attr("height", d3.event.pageY)
+				tip.show(d);
+			})			
+			.on("mouseout", function (d) {
+				tip.hide(d);
+			})
+			.attr("fill", function(d, i) { return color(i); })
+			.transition()
+		    .delay(function(d, i) {
+		    	return i * 800;
+			})
+			.attrTween('d', function(d) {
+				var i = d3.interpolate(d.startAngle+0.1, d.endAngle);
+				return function(t) {
+					d.endAngle = i(t);
+					return arc(d);
+   				}
+   			});
 
-		g.append("path")
-			.attr("d", arc)
-			.style("fill", function(d) { return color(d.data.key); });
 
-		/*g.append("text")
-			.attr("transform", function(d) { return "translate(" + labelArc.centroid(d) + ")"; })
+		svg.selectAll("path").append("text")
+			.attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
 			.attr("dy", ".35em")
-			.text(function(d) { return d.data.key; });*/
+			.text(function(d) { return d.data.key; });
 
 		function type(d) {
 			d.value = +d.value;
